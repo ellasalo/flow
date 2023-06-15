@@ -3,12 +3,11 @@ package com.vaadin.flow.uitest.ui;
 import com.vaadin.base.devserver.DevToolsMessageHandler;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.dependency.JsModule;
-import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.server.VaadinSession;
 
 import elemental.json.JsonObject;
 
-@JsModule("./devtools-plugin.ts")
+@JsModule(value = "./devtools-plugin.ts", developmentOnly = true)
 public class DevToolsPlugin implements DevToolsMessageHandler {
 
     @Override
