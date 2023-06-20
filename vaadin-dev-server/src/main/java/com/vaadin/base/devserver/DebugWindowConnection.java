@@ -144,12 +144,34 @@ public class DebugWindowConnection implements BrowserLiveReload {
         this.backend = backend;
     }
 
+    private DevToolsInterface getDevToolsInterface(
+            AtmosphereResource resource) {
+        DevToolsInterface devToolsInterface = new DevToolsInterface() {
+            @Override
+            public void send(String command, JsonObject data) {
+                JsonObject msg = Json.createObject();
+                msg.put("command", command);
+                if (data != null) {
+                    msg.put("data", data);
+                }
+
+                DebugWindowConnection.this.send(resource, msg.toJson());
+            }
+        };
+
+        return devToolsInterface;
+    }
+
     @Override
     public void onConnect(AtmosphereResource resource) {
         resource.suspend(-1);
         atmosphereResources.add(new WeakReference<>(resource));
         resource.getBroadcaster().broadcast("{\"command\": \"hello\"}",
                 resource);
+
+        for (DevToolsMessageHandler plugin : plugins) {
+            plugin.handleConnect(getDevToolsInterface(resource));
+        }
 
         send(resource, "serverInfo", new ServerInfo());
         send(resource, "featureFlags", new FeatureFlagMessage(FeatureFlags
@@ -166,11 +188,16 @@ public class DebugWindowConnection implements BrowserLiveReload {
     private void send(AtmosphereResource resource, String command,
             Object data) {
         try {
-            resource.getBroadcaster().broadcast(objectMapper.writeValueAsString(
-                    new DebugWindowMessage(command, data)), resource);
+            send(resource, objectMapper
+                    .writeValueAsString(new DebugWindowMessage(command, data)));
         } catch (Exception e) {
             getLogger().error("Error sending message", e);
         }
+
+    }
+
+    private void send(AtmosphereResource resource, String json) {
+        resource.getBroadcaster().broadcast(json, resource);
     }
 
     @Override
@@ -282,7 +309,8 @@ public class DebugWindowConnection implements BrowserLiveReload {
         } else {
             boolean handled = false;
             for (DevToolsMessageHandler plugin : plugins) {
-                handled = plugin.handleDevToolsMessage(command, data);
+                handled = plugin.handleDevToolsMessage(command, data,
+                        getDevToolsInterface(resource));
                 if (handled) {
                     break;
                 }
