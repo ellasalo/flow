@@ -144,22 +144,34 @@ public class DebugWindowConnection implements BrowserLiveReload {
         this.backend = backend;
     }
 
+    /** Implementation of the development tools interface. */
+    public static class DevToolsInterfaceImpl implements DevToolsInterface {
+        private DebugWindowConnection debugWindowConnection;
+        private AtmosphereResource resource;
+
+        private DevToolsInterfaceImpl(
+                DebugWindowConnection debugWindowConnection,
+                AtmosphereResource resource) {
+            this.debugWindowConnection = debugWindowConnection;
+            this.resource = resource;
+        }
+
+        @Override
+        public void send(String command, JsonObject data) {
+            JsonObject msg = Json.createObject();
+            msg.put("command", command);
+            if (data != null) {
+                msg.put("data", data);
+            }
+
+            debugWindowConnection.send(resource, msg.toJson());
+        }
+
+    }
+
     private DevToolsInterface getDevToolsInterface(
             AtmosphereResource resource) {
-        DevToolsInterface devToolsInterface = new DevToolsInterface() {
-            @Override
-            public void send(String command, JsonObject data) {
-                JsonObject msg = Json.createObject();
-                msg.put("command", command);
-                if (data != null) {
-                    msg.put("data", data);
-                }
-
-                DebugWindowConnection.this.send(resource, msg.toJson());
-            }
-        };
-
-        return devToolsInterface;
+        return new DevToolsInterfaceImpl(this, resource);
     }
 
     @Override
