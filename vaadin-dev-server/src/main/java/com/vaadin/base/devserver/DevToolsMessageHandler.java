@@ -27,7 +27,7 @@ public interface DevToolsMessageHandler {
      * <p>
      * This happens on each refresh but also when the application is opened in a
      * new browser tab or window.
-     * 
+     *
      * @param devToolsInterface
      *            for interaction with the development tools, e.g. sending a
      *            message

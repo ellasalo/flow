@@ -24,7 +24,7 @@ public interface DevToolsInterface {
 
     /**
      * Sends the given message to the client side.
-     * 
+     *
      * @param command
      *            the command to send
      * @param data
